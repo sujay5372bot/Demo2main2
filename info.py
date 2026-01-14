@@ -176,9 +176,9 @@ else:
     ON_HEROKU = False
 HAS_SSL = bool(getenv('HAS_SSL', True))
 if HAS_SSL:
-    URL = "".format(FQDN)
+    URL = "https://joint-leelah-afexlegend-944eb40b.koyeb.app/".format(FQDN)
 else:
-    URL = "".format(FQDN)
+    URL = "https://joint-leelah-afexlegend-944eb40b.koyeb.app/".format(FQDN)
 
 # ============================
 # Reactions Configuration
