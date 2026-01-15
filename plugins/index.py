@@ -7,6 +7,7 @@ from info import ADMINS, INDEX_REQ_CHANNEL as LOG_CHANNEL
 from database.ia_filterdb import save_file
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from utils import temp
+from pyrogram.errors import FloodWait
 import re
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -159,7 +160,11 @@ async def index_files_to_db(lst_msg_id, chat, msg, bot):
                     continue
                 media.file_type = message.media.value
                 media.caption = message.caption
-                aynav, vnay = await save_file(bot, media)
+                try:
+                    aynav, vnay = await save_file(bot, media)
+                except FloodWait as e:
+                    await asyncio.sleep(e.value)
+                    aynav, vnay = await save_file(bot, media)
                 if aynav:
                     total_files += 1
                 elif vnay == 0:
