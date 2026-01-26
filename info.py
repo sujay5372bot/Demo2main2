@@ -2,6 +2,7 @@ import re
 import os
 from os import environ, getenv
 from Script import script
+from plugins.bypass import *
 
 # Utility functions
 id_pattern = re.compile(r'^.\d+$')
