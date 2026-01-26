@@ -1,22 +1,17 @@
-#SUJAY 😎
 import requests
-from pyrogram import filters
+import base64
+from pyrogram import Client, filters
 from pyrogram.types import Message
 from urllib.parse import urlparse, parse_qs, unquote
-import base64
-
-from pyrogram import Client     # Agar tumhara Client object 'app' ya 'bot' name se hai
 
 def special_bypass(url: str):
     parsed = urlparse(url)
     qs = parse_qs(parsed.query)
     host = parsed.netloc.lower()
 
-    # t.me redirect
     if "t.me" in host and "url" in qs:
         return unquote(qs["url"][0])
 
-    # gplinks.in
     if "gplinks" in host:
         if "url" in qs:
             return unquote(qs["url"][0])
@@ -26,29 +21,49 @@ def special_bypass(url: str):
             except:
                 pass
 
-    # Adfly
     if "adf.ly" in host or "adfly" in host:
         if "url" in qs:
             return unquote(qs["url"][0])
 
-    # Droplink
     if "droplink" in host:
         if "url" in qs:
             return unquote(qs["url"][0])
 
     return None
 
+
 def follow_redirects(url: str):
     headers = {"User-Agent": "Mozilla/5.0 (BypassBot)"}
     r = requests.get(url, headers=headers, allow_redirects=True, timeout=20)
     return r.url
 
-@Client.on_message(filters.command("bypass") & filters.private)
-def bypass_handler(client, message: Message):
-    if len(message.command) < 2:
-        return message.reply("❌ Use: /bypass <link>")
 
-    shortlink = message.command[1].strip()
+@Client.on_message(filters.command("bypass"))
+def bypass_handler(client, message: Message):
+
+    shortlink = None
+
+    # Case 1: /bypass <link>
+    if len(message.command) > 1:
+        shortlink = message.command[1]
+
+    # Case 2: /bypass reply to a message that contains link
+    elif message.reply_to_message:
+        shortlink = message.reply_to_message.text
+
+    # Case 3: /bypass ke baad user ne link next line me bheja
+    elif message.text and "\n" in message.text:
+        parts = message.text.split("\n")
+        if len(parts) > 1:
+            shortlink = parts[1].strip()
+
+    if not shortlink:
+        return message.reply(
+            "❌ Link nahi mila.\n\nUse:\n"
+            "`/bypass <link>`\n\n"
+            "Ya kisi link ko reply karke `/bypass` bhejo."
+        )
+
     msg = message.reply("🔄 Bypassing link...")
 
     try:
@@ -57,7 +72,8 @@ def bypass_handler(client, message: Message):
             final_url = follow_redirects(shortlink)
 
         msg.edit(
-            f"🔓 **Bypassed!**\n\n➡️ `{final_url}`"
+            f"🔓 **Bypassed Successfully!**\n\n"
+            f"➡️ `{final_url}`"
         )
     except Exception as e:
-        msg.edit("❌ Bypass failed!")
+        msg.edit("❌ Bypass failed! Link protected ya error aaya.")
