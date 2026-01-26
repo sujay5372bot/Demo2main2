@@ -1,5 +1,6 @@
 import requests
 import base64
+import asyncio
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from urllib.parse import urlparse, parse_qs, unquote
@@ -32,48 +33,54 @@ def special_bypass(url: str):
     return None
 
 
-def follow_redirects(url: str):
+def follow_redirects_sync(url: str):
     headers = {"User-Agent": "Mozilla/5.0 (BypassBot)"}
     r = requests.get(url, headers=headers, allow_redirects=True, timeout=20)
     return r.url
 
 
+async def follow_redirects(url: str):
+    # blocking requests ko async me chalane ke liye
+    return await asyncio.to_thread(follow_redirects_sync, url)
+
+
 @Client.on_message(filters.command("bypass"))
-def bypass_handler(client, message: Message):
+async def bypass_handler(client, message: Message):
 
     shortlink = None
 
-    # Case 1: /bypass <link>
+    # /bypass <link>
     if len(message.command) > 1:
         shortlink = message.command[1]
 
-    # Case 2: /bypass reply to a message that contains link
-    elif message.reply_to_message:
-        shortlink = message.reply_to_message.text
+    # reply me link ho
+    elif message.reply_to_message and message.reply_to_message.text:
+        shortlink = message.reply_to_message.text.strip()
 
-    # Case 3: /bypass ke baad user ne link next line me bheja
+    # multiline
     elif message.text and "\n" in message.text:
         parts = message.text.split("\n")
         if len(parts) > 1:
             shortlink = parts[1].strip()
 
     if not shortlink:
-        return message.reply(
-            "❌ Link nahi mila.\n\nUse:\n"
+        return await message.reply_text(
+            "❌ Link nahi mila.\n\n"
+            "Use:\n"
             "`/bypass <link>`\n\n"
-            "Ya kisi link ko reply karke `/bypass` bhejo."
+            "Ya kisi link par reply karke `/bypass` bhejo."
         )
 
-    msg = message.reply("🔄 Bypassing link...")
+    msg = await message.reply_text("🔄 Bypassing link...")
 
     try:
         final_url = special_bypass(shortlink)
         if not final_url:
-            final_url = follow_redirects(shortlink)
+            final_url = await follow_redirects(shortlink)
 
-        msg.edit(
+        await msg.edit_text(
             f"🔓 **Bypassed Successfully!**\n\n"
             f"➡️ `{final_url}`"
         )
     except Exception as e:
-        msg.edit("❌ Bypass failed! Link protected ya error aaya.")
+        await msg.edit_text("❌ Bypass failed! Link protected ya error aaya.")
