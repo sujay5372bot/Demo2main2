@@ -43,7 +43,7 @@ def follow_redirects(url: str):
     r = requests.get(url, headers=headers, allow_redirects=True, timeout=20)
     return r.url
 
-@app.on_message(filters.command("bypass") & filters.private)
+@Client.on_message(filters.command("bypass") & filters.private)
 def bypass_handler(client, message: Message):
     if len(message.command) < 2:
         return message.reply("❌ Use: /bypass <link>")
