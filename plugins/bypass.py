@@ -5,7 +5,7 @@ from pyrogram.types import Message
 from urllib.parse import urlparse, parse_qs, unquote
 import base64
 
-from bot import app  # Agar tumhara Client object 'app' ya 'bot' name se hai
+from pyrogram import Client     # Agar tumhara Client object 'app' ya 'bot' name se hai
 
 def special_bypass(url: str):
     parsed = urlparse(url)
