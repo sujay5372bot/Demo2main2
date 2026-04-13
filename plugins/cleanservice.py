@@ -35,3 +35,17 @@ async def cleanservice_toggle(client, message: Message):
         await message.reply_text(
             "🧹 Clean Service ✅ Enabled"
         )
+@Client.on_message(filters.service & filters.group)
+async def delete_service_messages(client, message: Message):
+
+    chat_id = message.chat.id
+
+    status = await is_cleanservice(chat_id)
+
+    if not status:
+        return
+
+    try:
+        await message.delete()
+    except:
+        pass
