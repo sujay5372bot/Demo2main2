@@ -2528,18 +2528,28 @@ async def ai_spell_check(chat_id, wrong_name):
         search_results = imdb.search_movie(wrong_name)
         movie_list = [movie['title'] for movie in search_results]
         return movie_list
+
+    wrong_name = wrong_name.lower().strip()
+
     movie_list = await search_movie(wrong_name)
     if not movie_list:
-        return
-    for _ in range(5):
-        matches = process.extract(wrong_name, movie_list, limit=5)
-        if not closest_match or closest_match[1] <= 70:
-            return 
-        movie = closest_match[0]
-        files, offset, total_results = await get_search_results(chat_id=chat_id, query=movie)
+        return None
+
+    matches = process.extract(wrong_name, movie_list, limit=5)
+
+    for movie, score in matches:
+        if score < 70:
+            continue
+
+        files, offset, total_results = await get_search_results(
+            chat_id=chat_id,
+            query=movie
+        )
+
         if files:
             return movie
-        movie_list.remove(movie)
+
+    return None
 
 async def advantage_spell_chok(client, message):
     mv_id = message.id
