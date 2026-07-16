@@ -2532,7 +2532,7 @@ async def ai_spell_check(chat_id, wrong_name):
     if not movie_list:
         return
     for _ in range(5):
-        closest_match = process.extractOne(wrong_name, movie_list)
+        matches = process.extract(wrong_name, movie_list, limit=5)
         if not closest_match or closest_match[1] <= 70:
             return 
         movie = closest_match[0]
