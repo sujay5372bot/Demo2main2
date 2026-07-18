@@ -2580,6 +2580,7 @@ async def ai_spell_check(chat_id, wrong_name):
         return None
 
     matches = process.extract(wrong_name, movie_list, limit=5)
+    result = []
 
     for movie, score in matches:
         if score < 70:
@@ -2591,9 +2592,9 @@ async def ai_spell_check(chat_id, wrong_name):
         )
 
         if files:
-            return movie
+            result.append((movie, score))
 
-    return None
+    return result
 
 async def advantage_spell_chok(client, message):
     mv_id = message.id
@@ -2616,6 +2617,27 @@ async def advantage_spell_chok(client, message):
             pass
         return
     if not movies:
+        spell = await ai_spell_check(chat_id, search)
+
+        if spell:
+
+            buttons = []
+            seen = set()
+
+            for movie, score in spell[:5]:
+                if score < 70:
+                    continue
+                if movie in seen:
+                    continue
+                seen.add(movie)
+
+                buttons.append([InlineKeyboardButton(text=f"🎬 {movie}",callback_data=f"spell#{movie}")])
+
+            buttons.append([InlineKeyboardButton(text="❌ Close",callback_data="close_data")])
+
+            await message.reply_text(text="🤖 Did you mean one of these movies?",reply_markup=InlineKeyboardMarkup(buttons))
+
+            return
         google = search.replace(" ", "+")
         button = [[
             InlineKeyboardButton("🔍 ᴄʜᴇᴄᴋ sᴘᴇʟʟɪɴɢ ᴏɴ ɢᴏᴏɢʟᴇ 🔍", url=f"https://www.google.com/search?q={google}")
