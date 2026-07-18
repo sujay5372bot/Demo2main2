@@ -2530,6 +2530,44 @@ async def ai_spell_check(chat_id, wrong_name):
         return movie_list
 
     wrong_name = wrong_name.lower().strip()
+    remove_words = [
+    "movie",
+    "mkv",
+    "mp4",
+    "x264",
+    "x265",
+    "hevc",
+    "10bit",
+    "esub",
+    "cam",
+    "camrip",
+    "hdcam",
+    "proper",
+    "org",
+    "official",
+    "full movie",
+    "full",
+    "hindi",
+    "dubbed",
+    "dual audio",
+    "720p",
+    "1080p",
+    "2160p",
+    "4k",
+    "webdl",
+    "web-dl",
+    "webrip",
+    "hdrip",
+    "bluray",
+    "netflix",
+    "amazon",
+    "telegram"
+]
+
+for word in remove_words:
+    wrong_name = wrong_name.replace(word, "")
+
+wrong_name = " ".join(wrong_name.split())
 
     movie_list = await search_movie(wrong_name)
     if not movie_list:
