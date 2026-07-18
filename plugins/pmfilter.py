@@ -2570,10 +2570,10 @@ async def ai_spell_check(chat_id, wrong_name):
     "telegram"
 ]
 
-for word in remove_words:
-    wrong_name = wrong_name.replace(word, "")
+    for word in remove_words:
+        wrong_name = wrong_name.replace(word, "")
 
-wrong_name = " ".join(wrong_name.split())
+    wrong_name = " ".join(wrong_name.split())
 
     movie_list = await search_movie(wrong_name)
     if not movie_list:
