@@ -2326,6 +2326,7 @@ async def auto_filter(client, msg, spoll=False):
             files, offset, total_results = await get_search_results(message.chat.id ,search, offset=0, filter=True)
             settings = await get_settings(message.chat.id)
             if not files:
+                await client.send_message(req_channel, f"#REQUESTED_LOGS \n\n**CONTENT NAME:**`{search}` \n**REQUESTED BY :** {message.from_user.first_name}\n**USER ID :** {message.from_user.id}", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔺Mark as Done🔻", callback_data="close_data")]]))
                 #await m.delete()
                 if settings["spell_check"]:
                     ai_sts = await m.edit('🤖 ᴘʟᴇᴀꜱᴇ ᴡᴀɪᴛ, ᴀɪ ɪꜱ ᴄʜᴇᴄᴋɪɴɢ ʏᴏᴜʀ ꜱᴘᴇʟʟɪɴɢ...')
