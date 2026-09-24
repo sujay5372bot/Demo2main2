@@ -2329,16 +2329,16 @@ async def auto_filter(client, msg, spoll=False):
                 await client.send_message(req_channel, f"#REQUESTED_LOGS \n\n**CONTENT NAME:**`{search}` \n**REQUESTED BY :** {message.from_user.first_name}\n**USER ID :** {message.from_user.id}", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔺Mark as Done🔻", callback_data="close_data")]]))
                 #await m.delete()
                 if settings["spell_check"]:
-                    ai_sts = await m.edit('🤖 ᴘʟᴇᴀꜱᴇ ᴡᴀɪᴛ, ᴀɪ ɪꜱ ᴄʜᴇᴄᴋɪɴɢ ʏᴏᴜʀ ꜱᴘᴇʟʟɪɴɢ...')
+                    ai_sts = await m.edit('🤖 ᴘʟᴇᴀsᴇ ᴡᴀɪᴛ, ᴀɪ ɪs ᴄʜᴇᴄᴋɪɴɢ ʏᴏᴜʀ sᴘᴇʟʟɪɴɢ...')
                     is_misspelled = await ai_spell_check(chat_id = message.chat.id,wrong_name=search)
                     if is_misspelled:
-                        await ai_sts.edit(f'<b>✅Aɪ Sᴜɢɢᴇsᴛᴇᴅ ᴍᴇ<code> {is_misspelled}</code> \nSᴏ Iᴍ Sᴇᴀʀᴄʜɪɴɢ ғᴏʀ <code>{is_misspelled}</code></b>')
-                        await asyncio.sleep(2)
-                        message.text = is_misspelled
-                        await ai_sts.delete()
-                        return await auto_filter(client, message)
+                    await ai_sts.edit(f'<b>✅Aɪ Sᴜɢɢᴇsᴛᴇᴅ ᴍᴇ<code> {is_misspelled}</code> Sᴏ Iᴍ sᴇᴀʀᴄʜɪɴɢ ғᴏʀ <code>{is_misspelled}</code></b>')
+                    await asyncio.sleep(2)
+                    message.text = is_misspelled
                     await ai_sts.delete()
-                    return await advantage_spell_chok(client, message)
+                    return await auto_filter(client, message)
+                await ai_sts.delete()
+                return await advantage_spell_chok(client, message)
         else:
             return
     else:
@@ -2620,22 +2620,23 @@ async def advantage_spell_chok(client, message):
         spell = await ai_spell_check(chat_id, search)
 
         if spell:
-
             buttons = []
             seen = set()
 
             for movie, score in spell[:5]:
+
                 if score < 70:
                     continue
-                if movie in seen:
+                movie_key = movie.lower().strip()
+                if movie_key in seen:
                     continue
-                seen.add(movie)
+                seen.add(movie_key)
 
                 buttons.append([InlineKeyboardButton(text=f"🎬 {movie}",callback_data=f"spell#{movie}")])
 
-            buttons.append([InlineKeyboardButton(text="❌ Close",callback_data="close_data")])
+            buttons.append([InlineKeyboardButton(text="🚫 ᴄʟᴏsᴇ 🚫",callback_data="close_data")])
 
-            await message.reply_text(text="🤖 Did you mean one of these movies?",reply_markup=InlineKeyboardMarkup(buttons))
+            await message.reply_text(text=script.CUDNT_FND,reply_markup=InlineKeyboardMarkup(buttons),reply_to_message_id=message.id)
 
             return
         google = search.replace(" ", "+")
