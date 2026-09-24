@@ -322,6 +322,85 @@ async def next_page(bot, query):
     await query.answer()
 
 
+@Client.on_callback_query(filters.regex(r"^spell#"))
+async def spell_callback_handler(client, query):
+    try:
+        movie = query.data.split("#", 1)[1].strip()
+
+        if not movie:
+            return await query.answer(
+                "❌ Movie name not found!",
+                show_alert=True
+            )
+
+        await query.answer("🔎 Searching...")
+
+        chat_id = query.message.chat.id
+
+        files, offset, total_results = await get_search_results(
+            chat_id,
+            movie,
+            offset=0,
+            filter=True
+        )
+
+        if files:
+            k = (
+                movie,
+                files,
+                offset,
+                total_results
+            )
+
+            return await auto_filter(
+                client,
+                query,
+                k
+            )
+
+        # One more attempt with normalized title
+        clean_movie = re.sub(r"[:-]", " ", movie)
+        clean_movie = re.sub(r"\s+", " ", clean_movie).strip()
+
+        files, offset, total_results = await get_search_results(
+            chat_id,
+            clean_movie,
+            offset=0,
+            filter=True
+        )
+
+        if files:
+            k = (
+                clean_movie,
+                files,
+                offset,
+                total_results
+            )
+
+            return await auto_filter(
+                client,
+                query,
+                k
+            )
+
+        await query.message.edit_text(
+            script.MVE_NT_FND
+        )
+
+    except Exception as e:
+        logger.exception(
+            f"Spell callback error: {e}"
+        )
+
+        try:
+            await query.answer(
+                "❌ Something went wrong!",
+                show_alert=True
+            )
+        except:
+            pass
+
+
 
 @Client.on_callback_query(filters.regex(r"^spol"))
 async def advantage_spoll_choker(bot, query):
