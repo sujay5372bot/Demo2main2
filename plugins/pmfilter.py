@@ -2407,17 +2407,23 @@ async def auto_filter(client, msg, spoll=False):
             if not files:
                 await client.send_message(req_channel, f"#REQUESTED_LOGS \n\n**CONTENT NAME:**`{search}` \n**REQUESTED BY :** {message.from_user.first_name}\n**USER ID :** {message.from_user.id}", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔺Mark as Done🔻", callback_data="close_data")]]))
                 #await m.delete()
-                if settings["spell_check"]:
-                    ai_sts = await m.edit('🤖 ᴘʟᴇᴀsᴇ ᴡᴀɪᴛ, ᴀɪ ɪs ᴄʜᴇᴄᴋɪɴɢ ʏᴏᴜʀ sᴘᴇʟʟɪɴɢ...')
-                    is_misspelled = await ai_spell_check(chat_id = message.chat.id,wrong_name=search)
-                    if is_misspelled:
-                    await ai_sts.edit(f'<b>✅Aɪ Sᴜɢɢᴇsᴛᴇᴅ ᴍᴇ<code> {is_misspelled}</code> Sᴏ Iᴍ sᴇᴀʀᴄʜɪɴɢ ғᴏʀ <code>{is_misspelled}</code></b>')
-                    await asyncio.sleep(2)
-                    message.text = is_misspelled
-                    await ai_sts.delete()
-                    return await auto_filter(client, message)
                 await ai_sts.delete()
                 return await advantage_spell_chok(client, message)
+                if settings["spell_check"]:
+                    ai_sts = await m.edit('🤖 ᴘʟᴇᴀsᴇ ᴡᴀɪᴛ, ᴀɪ ɪs ᴄʜᴇᴄᴋɪɴɢ ʏᴏᴜʀ sᴘᴇʟʟɪɴɢ...')
+                    spell_results = await ai_spell_check(chat_id=message.chat.id,wrong_name=search) 
+                    if spell_results:
+                        movie, score = spell_results[0]
+                        await ai_sts.edit(f'<b>✅ Aɪ Sᴜɢɢᴇsᴛᴇᴅ ᴍᴇ 'f'<code>{movie}</code>\n'f'Sᴏ Iᴍ sᴇᴀʀᴄʜɪɴɢ ғᴏʀ 'f'<code>{movie}</code></b>')
+                        await asyncio.sleep(1)
+                        message.text = movie
+                        await ai_sts.delete()
+                        return await auto_filter(client, message)
+                await ai_sts.delete()
+                return await advantage_spell_chok(client, message)
+
+
+        
         else:
             return
     else:
