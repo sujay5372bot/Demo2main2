@@ -2609,71 +2609,118 @@ async def auto_filter(client, msg, spoll=False):
             await message.delete()
 
 async def ai_spell_check(chat_id, wrong_name):
-    async def search_movie(wrong_name):
-        search_results = imdb.search_movie(wrong_name)
-        movie_list = [movie['title'] for movie in search_results]
-        return movie_list
+
+    async def search_movie(name):
+        try:
+            search_results = imdb.search_movie(name)
+
+            if not search_results:
+                return []
+
+            return [
+                movie['title']
+                for movie in search_results
+                if movie.get('title')
+            ]
+
+        except Exception as e:
+            logger.exception(
+                f"IMDb spell search error: {e}"
+            )
+            return []
 
     wrong_name = wrong_name.lower().strip()
+
     remove_words = [
-    "movie",
-    "mkv",
-    "mp4",
-    "x264",
-    "x265",
-    "hevc",
-    "10bit",
-    "esub",
-    "cam",
-    "camrip",
-    "hdcam",
-    "proper",
-    "org",
-    "official",
-    "full movie",
-    "full",
-    "hindi",
-    "dubbed",
-    "dual audio",
-    "720p",
-    "1080p",
-    "2160p",
-    "4k",
-    "webdl",
-    "web-dl",
-    "webrip",
-    "hdrip",
-    "bluray",
-    "netflix",
-    "amazon",
-    "telegram"
-]
+        "movie",
+        "mkv",
+        "mp4",
+        "x264",
+        "x265",
+        "hevc",
+        "10bit",
+        "esub",
+        "cam",
+        "camrip",
+        "hdcam",
+        "proper",
+        "org",
+        "official",
+        "full movie",
+        "full",
+        "hindi",
+        "dubbed",
+        "dual audio",
+        "720p",
+        "1080p",
+        "2160p",
+        "4k",
+        "webdl",
+        "web-dl",
+        "webrip",
+        "hdrip",
+        "bluray",
+        "netflix",
+        "amazon",
+        "telegram"
+    ]
 
     for word in remove_words:
-        wrong_name = wrong_name.replace(word, "")
+        wrong_name = wrong_name.replace(word, " ")
 
-    wrong_name = " ".join(wrong_name.split())
+    wrong_name = " ".join(
+        wrong_name.split()
+    )
 
-    movie_list = await search_movie(wrong_name)
+    if not wrong_name:
+        return []
+
+    movie_list = await search_movie(
+        wrong_name
+    )
+
     if not movie_list:
-        return None
+        return []
 
-    matches = process.extract(wrong_name, movie_list, limit=5)
+    try:
+        matches = process.extract(
+            wrong_name,
+            movie_list,
+            limit=5
+        )
+    except Exception as e:
+        logger.exception(
+            f"RapidFuzz error: {e}"
+        )
+        return []
+
     result = []
 
-    for movie, score in matches:
+    for movie, score, _ in matches:
+
         if score < 70:
             continue
 
-        files, offset, total_results = await get_search_results(
-            chat_id=chat_id,
-            query=movie
-        )
+        try:
+            files, offset, total_results = await get_search_results(
+                chat_id=chat_id,
+                query=movie
+            )
 
-        if files:
-            result.append((movie, score))
+            if files:
+                result.append(
+                    (movie, score)
+                )
+
+        except Exception as e:
+            logger.exception(
+                f"Database spell check error: {e}"
+            )
 
     return result
+
+
+
 
 async def advantage_spell_chok(client, message):
     mv_id = message.id
